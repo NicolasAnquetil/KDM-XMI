@@ -52,8 +52,10 @@ KDMImporter >> on: aFileName [
 KDMImporter >> registerKDMObject: aNodeWithElements [
 
 	| obj |
+	1haltIf: [  currentId beginsWith: '/0/@model.5' ].
 	obj := KDMObject new.
 	obj id: currentId.
+	obj model: model.
 
 	aNodeWithElements attributes keysAndValuesDo: [ :att :val |
 		obj attributeAt: att put: val ].
@@ -132,7 +134,7 @@ KDMImporter >> visitNodeWithElements: aNodeWithElements [
 	seq := 0.
 	(aNodeWithElements nodes reject: #isStringNode)
 		do: [:each |
-			currentId := parentId , '/@' , aNodeWithElements localName , '.' , seq asString.
+			currentId := parentId , '/@' , each localName , '.' , seq asString.
 			self registerKDMObject: aNodeWithElements.
 			each acceptNodeVisitor: self.
 			seq := seq + 1.

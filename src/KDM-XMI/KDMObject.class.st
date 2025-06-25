@@ -3,7 +3,8 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'attributes',
-		'id'
+		'id',
+		'model'
 	],
 	#category : 'KDM-XMI',
 	#package : 'KDM-XMI'
@@ -57,4 +58,16 @@ KDMObject >> initialize [
 	super initialize.
 
 	attributes := Dictionary new
+]
+
+{ #category : 'accessing' }
+KDMObject >> model [
+
+	^ model
+]
+
+{ #category : 'accessing' }
+KDMObject >> model: anObject [
+
+	model := anObject
 ]
