@@ -2,13 +2,21 @@ Class {
 	#name : 'KDMObject',
 	#superclass : 'Object',
 	#instVars : [
+		'type',
 		'attributes',
 		'id',
-		'model'
+		'model',
+		'children'
 	],
 	#category : 'KDM-XMI',
 	#package : 'KDM-XMI'
 }
+
+{ #category : 'accessing' }
+KDMObject >> addChild: anObject [
+
+	children add: anObject 
+]
 
 { #category : 'accessing' }
 KDMObject >> attributeAt: anAttribute [
@@ -41,6 +49,12 @@ KDMObject >> attributes: anObject [
 ]
 
 { #category : 'accessing' }
+KDMObject >> children [
+
+	^children
+]
+
+{ #category : 'accessing' }
 KDMObject >> id [
 
 	^ id
@@ -57,7 +71,8 @@ KDMObject >> initialize [
 
 	super initialize.
 
-	attributes := Dictionary new
+	attributes := Dictionary new.
+	children := OrderedCollection new
 ]
 
 { #category : 'accessing' }
@@ -70,4 +85,22 @@ KDMObject >> model [
 KDMObject >> model: anObject [
 
 	model := anObject
+]
+
+{ #category : 'printing' }
+KDMObject >> printOn: aStream [
+
+	aStream << (self type)
+]
+
+{ #category : 'accessing' }
+KDMObject >> type [
+
+	^type
+]
+
+{ #category : 'accessing' }
+KDMObject >> type: aString [
+
+	type := aString 
 ]

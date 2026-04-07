@@ -20,6 +20,9 @@ KDMImporter class >> on: aFilename [
 { #category : 'reflective operations' }
 KDMImporter >> doesNotUnderstand: aMessage [
   | code |
+
+	self deprecated: 'Should not be needed anymore, all visit methods created'.
+
   (aMessage selector beginsWith: 'visit')
     ifFalse: [ super doesNotUnderstand: aMessage ].
 
@@ -44,7 +47,8 @@ KDMImporter >> on: aFileName [
 	xmlRoot := aFileName asFileReference readStreamDo: [ :st |
 		(XMLDOMParser parse: st) document root ].
 
-	model := Dictionary new.
+	model := KDMModel new.
+	currentId := ''.
 	xmlRoot acceptNodeVisitor: self
 ]
 
@@ -52,15 +56,17 @@ KDMImporter >> on: aFileName [
 KDMImporter >> registerKDMObject: aNodeWithElements [
 
 	| obj |
-	1haltIf: [  currentId beginsWith: '/0/@model.5' ].
 	obj := KDMObject new.
-	obj id: currentId.
-	obj model: model.
+	obj id: (currentId , '/@' , aNodeWithElements localName).
+	obj type: aNodeWithElements localName.
+	
+	model register: obj.
 
 	aNodeWithElements attributes keysAndValuesDo: [ :att :val |
 		obj attributeAt: att put: val ].
 
-	model at: currentId put: obj
+
+	^obj
 ]
 
 { #category : 'visiting - KDM' }
@@ -74,7 +80,27 @@ KDMImporter >> visitAnnotation: anXMLNode [
 ]
 
 { #category : 'visiting - KDM' }
+KDMImporter >> visitAnnotations: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitArguments: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
 KDMImporter >> visitAttribute: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitBody: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitBodyDeclarations: anXMLNode [
   ^self visitNodeWithElements: anXMLNode
 ]
 
@@ -88,16 +114,51 @@ KDMImporter >> visitCodeRelation: anXMLNode [
   ^self visitNodeWithElements: anXMLNode
 ]
 
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitCompilationUnits: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
 { #category : 'visiting' }
 KDMImporter >> visitElement: anXMLNode [
 
 	| key |
 	key := anXMLNode localName.
-	self visitNode: anXMLNode Key: key
+	^self visitNode: anXMLNode Key: key
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitElementType: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitExpression: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitExtendedOperands: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitField: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitFragments: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
 ]
 
 { #category : 'visiting - KDM' }
 KDMImporter >> visitIndexUnit: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitInitializer: anXMLNode [
   ^self visitNodeWithElements: anXMLNode
 ]
 
@@ -112,7 +173,22 @@ KDMImporter >> visitItemUnit: anXMLNode [
 ]
 
 { #category : 'visiting - KDM' }
+KDMImporter >> visitLeftHandSide: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitLeftOperand: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
 KDMImporter >> visitModel: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitModifier: anXMLNode [
   ^self visitNodeWithElements: anXMLNode
 ]
 
@@ -121,26 +197,41 @@ KDMImporter >> visitNode: anXMLNode Key: key [
 
 	| selector |
 	selector := 'visit' , key onlyLetters capitalized.
-	self perform: selector asSymbol asMutator with: anXMLNode 
+	^self perform: selector asSymbol asMutator with: anXMLNode 
 ]
 
 { #category : 'visiting' }
 KDMImporter >> visitNodeWithElements: aNodeWithElements [
-	| parentId seq |
-
-	aNodeWithElements hasChildren ifFalse: [ ^self ].
+	| parentId obj |
 
 	parentId := currentId.
-	seq := 0.
+	obj:= self registerKDMObject: aNodeWithElements.
+
+	aNodeWithElements hasChildren ifFalse: [ ^obj ].
+
+	currentId := obj id.
+
 	(aNodeWithElements nodes reject: #isStringNode)
-		do: [:each |
-			currentId := parentId , '/@' , each localName , '.' , seq asString.
-			self registerKDMObject: aNodeWithElements.
-			each acceptNodeVisitor: self.
-			seq := seq + 1.
-		].
+		do:  [:each | obj addChild: (each acceptNodeVisitor: self) ].
 
 	currentId := parentId.
+	
+	^obj
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitOrphanTypes: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitOwnedElements: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitOwnedPackages: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
 ]
 
 { #category : 'visiting - KDM' }
@@ -149,7 +240,32 @@ KDMImporter >> visitParameterUnit: anXMLNode [
 ]
 
 { #category : 'visiting - KDM' }
+KDMImporter >> visitParameters: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitQualifier: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
 KDMImporter >> visitRegion: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitReturnType: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitRightHandSide: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitRightOperand: anXMLNode [
   ^self visitNodeWithElements: anXMLNode
 ]
 
@@ -161,6 +277,31 @@ KDMImporter >> visitSegment: anXMLNode [
 
 { #category : 'visiting - KDM' }
 KDMImporter >> visitSource: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitStatements: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitSuperClass: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitSuperInterfaces: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitType: anXMLNode [
+  ^self visitNodeWithElements: anXMLNode
+]
+
+{ #category : 'visiting - KDM' }
+KDMImporter >> visitTypeParameters: anXMLNode [
   ^self visitNodeWithElements: anXMLNode
 ]
 
