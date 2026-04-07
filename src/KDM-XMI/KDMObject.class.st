@@ -90,7 +90,10 @@ KDMObject >> model: anObject [
 { #category : 'printing' }
 KDMObject >> printOn: aStream [
 
-	aStream << (self type)
+	aStream << self type.
+
+	(self attributeAt: #name ifAbsent: [ nil ])
+		ifNotNil: [ :name | aStream << ': ' ; << name ]
 ]
 
 { #category : 'accessing' }

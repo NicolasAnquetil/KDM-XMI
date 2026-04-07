@@ -3,6 +3,7 @@ Class {
 	#superclass : 'XMLNodeVisitor',
 	#instVars : [
 		'model',
+		'entities',
 		'currentId'
 	],
 	#category : 'KDM-XMI',
@@ -47,9 +48,9 @@ KDMImporter >> on: aFileName [
 	xmlRoot := aFileName asFileReference readStreamDo: [ :st |
 		(XMLDOMParser parse: st) document root ].
 
-	model := KDMModel new.
+	entities := Dictionary new.
 	currentId := ''.
-	xmlRoot acceptNodeVisitor: self
+	model := xmlRoot acceptNodeVisitor: self
 ]
 
 { #category : 'visiting' }
@@ -60,7 +61,7 @@ KDMImporter >> registerKDMObject: aNodeWithElements [
 	obj id: (currentId , '/@' , aNodeWithElements localName).
 	obj type: aNodeWithElements localName.
 	
-	model register: obj.
+	entities at: obj id put: obj.
 
 	aNodeWithElements attributes keysAndValuesDo: [ :att :val |
 		obj attributeAt: att put: val ].
