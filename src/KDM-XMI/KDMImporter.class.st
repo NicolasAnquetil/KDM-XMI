@@ -49,7 +49,7 @@ KDMImporter >> on: aFileName [
 		(XMLDOMParser parse: st) document root ].
 
 	entities := Dictionary new.
-	currentId := ''.
+	currentId := '/0'.
 	model := xmlRoot acceptNodeVisitor: self
 ]
 
@@ -272,7 +272,6 @@ KDMImporter >> visitRightOperand: anXMLNode [
 
 { #category : 'visiting - KDM' }
 KDMImporter >> visitSegment: anXMLNode [
-	currentId := '/0'.
   ^self visitNodeWithElements: anXMLNode
 ]
 
@@ -313,7 +312,5 @@ KDMImporter >> visitValue: anXMLNode [
 
 { #category : 'visiting - KDM' }
 KDMImporter >> visitXMI: anXMLNode [
-	(anXMLNode nodes reject: #isStringNode)
-		do: [:each | each acceptNodeVisitor: self ].
-
+	^self visitNodeWithElements: anXMLNode
 ]

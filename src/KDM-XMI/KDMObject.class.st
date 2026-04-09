@@ -92,6 +92,9 @@ KDMObject >> printOn: aStream [
 
 	aStream << self type.
 
+	(self attributeAt: #'xsi:type' ifAbsent: [ nil ])
+		ifNotNil: [ :xsitype | aStream << '(' ; << xsitype ; << ')' ].
+
 	(self attributeAt: #name ifAbsent: [ nil ])
 		ifNotNil: [ :name | aStream << ': ' ; << name ]
 ]
